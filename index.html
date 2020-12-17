@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafio da Calculadora</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+</head>
+
+<body>
+    <div id="container">
+        <div id="calculadora">
+            <p>
+                <table class="table table-hover table-bordered table-dark rounded container text-center"
+                    style="width: 250px;" id="tabela">
+                    <tr>
+                        <td colspan="4" class="display"><input type="display" id="saida" autofocus value="0" disabled></td>
+                    </tr>
+                    <tr>
+                        <td class="botao Clear  btnApagar bg-danger" id="btnClearAll">C</td>
+                        <td class="botao BackSpace  btnApagar bg-warning" id="btnBackspace">B</td>
+                        <td class="botao TrocarSinal  btnApagar" id="btnMudarSinal">+/-</td>
+                        <td class="botao Sinal  btnSinais" id="btnModulo">%</td>
+                    </tr>
+                    <tr>
+                        <td class="botao Num  btnNum bg-primary" id="btn7">7</td>
+                        <td class="botao Num  btnNum bg-primary" id="btn8">8</td>
+                        <td class="botao Num  btnNum bg-primary" id="btn9">9</td>
+                        <td class="botao Sinal  btnSinais" id="btnDiv">÷</td>
+                    </tr>
+                    <tr>
+                        <td class="botao Num  btnNum bg-primary" id="btn4">4</td>
+                        <td class="botao Num  btnNum bg-primary" id="btn5">5</td>
+                        <td class="botao Num  btnNum bg-primary" id="btn6">6</td>
+                        <td class="botao Sinal  btnSinais" id="btnMulti">×</td>
+                    </tr>
+                    <tr>
+                        <td class="botao Num  btnNum bg-primary" id="btn1">1</td>
+                        <td class="botao Num  btnNum bg-primary" id="btn2">2</td>
+                        <td class="botao Num  btnNum bg-primary" id="btn3">3</td>
+                        <td class="botao Sinal  btnSinais" id="btnSub">-</td>
+                    </tr>
+                    <tr>
+                        <td class="botao Num  btnNum bg-info" id="btnPonto">.</td>
+                        <td class="botao Num  btnNum bg-primary" id="btn0">0</td>
+                        <td class="botao Igual btnSinais bg-success" id="btnIgual">=</td>
+                        <td class="botao Sinal  btnSinais" id="btnSoma">+</td>
+                    </tr>
+                </table>
+            </p>
+        </div>
+    </div>
+    <script>
+        var saida = document.querySelector("#saida")
+        var calculadora = document.querySelector("#calculadora")
+        var elemento1, elemento2
+        var saidaVazia = true
+        var adicionarPrimeiroElemento = true
+        var primeiroSinal = true
+        var funcao = ""
+        var quantidadeSinal = 0
+        var primeiroCaracter = true
+        var existeSinalAnterior = true
+        var sinalEstaClicado = false
+        var numeroFoiClicado = false
+        var modulo = false
+        var quantidadeDeElementos = 0
+        var resultadoNaTela = false
+
+        function removerClassesCores() {
+            let btsSinal = document.querySelectorAll(".Sinal")
+            for (btn of btsSinal) {
+                btn.classList.remove("btnClick")
+            }
+        }
+
+        document.addEventListener("keydown", function (e) {
+            let key = e.key
+
+            if (key == "Backspace") {
+                saida.value = saida.value.slice(0, -1)
+                if (saida.value == "") {
+                    saida.value = 0
+                    saidaVazia = true
+                }
+            }
+        })
+
+        document.addEventListener("click", function (e) {
+            const el = e.target
+
+            if (el.classList.contains("Num")) {
+                let numero = el.innerText
+                if (numero == ".") {
+                    if (saida.value.indexOf(".") == -1) {
+                        adicionaNumeroSaida(numero)
+                    }
+                } else {
+                    adicionaNumeroSaida(numero)
+                }
+
+            } else if (el.classList.contains("Sinal")) {
+                removerClassesCores()
+                let sinal = el.innerText
+                if (sinal != "%") {
+                    el.classList.add("btnClick")
+                } else {
+                    sinal = "/100"
+                    modulo = true
+                }
+
+                if (primeiroCaracter && sinal == "-") {
+                    saida.value = "-"
+                    primeiroCaracter = false
+                    saidaVazia = false
+                    return
+                } else if (sinal == "×") {
+                    sinal = "*"
+                } else if (sinal == "÷") {
+                    sinal = "/"
+                }
+                cliqueSinal(sinal)
+            } else if (el.classList.contains("Igual") && !adicionarPrimeiroElemento && quantidadeSinal != 0) {
+                igual()
+            } else if (el.classList.contains("Clear")) {
+                limparSaida()
+            } else if (el.classList.contains("TrocarSinal")) {
+                trocarSinal()
+            } else if (el.classList.contains("BackSpace")) {
+                saida.value = saida.value.slice(0, -1)
+            } else if (saida.value == "") {
+                saida.value = 0
+                saidaVazia = true
+            }
+        })
+
+        function trocarSinal() {
+            let valor
+            if (adicionarPrimeiroElemento) {
+                valor = Number(saida.value)
+            } else if (saidaVazia) {
+                valor = Number(funcao)
+                saida.value = `${valor * -1}`
+                funcao = saida.value
+                return
+
+            } else {
+                valor = Number(saida.value)
+            }
+
+            saida.value = `${valor * -1}`
+        }
+
+        function limparSaida() {
+            saida.value = 0
+            saidaVazia = true
+            adicionarPrimeiroElemento = true
+            primeiroSinal = true
+            funcao = ""
+            quantidadeSinal = 0
+            primeiroCaracter = true
+            existeSinalAnterior = true
+            sinalEstaClicado = false
+            numeroFoiClicado = false
+            modulo = false
+            quantidadeDeElementos = 0
+            resultadoNaTela = false
+        }
+
+        function adicionaNumeroSaida(num) {
+            sinalEstaClicado = false
+            primeiroCaracter = false
+            numeroFoiClicado = true
+            if (resultadoNaTela) {
+                limparSaida()
+            }
+
+            if (saida.value.length < 14) {
+                if (saidaVazia) {
+                    saida.value = ""
+                    saidaVazia = false
+                }
+
+                removerClassesCores()
+                saida.value += num
+            }
+        }
+
+        function cliqueSinal(key) {
+            quantidadeSinal++
+
+            if (quantidadeSinal > 1 && existeSinalAnterior && numeroFoiClicado) {
+                if (sinalEstaClicado) {
+                    return
+                }
+                adicionaNoElemento()
+                funcao += elemento2
+                funcao = eval(funcao)
+                saida.value = funcao
+                funcao += key
+                if (modulo) {
+                    funcao = eval(funcao)
+                    saida.value = funcao
+                    modulo = false
+                }
+                quantidadeDeElementos = 1
+                adicionarPrimeiroElemento = false
+                saidaVazia = true
+                sinalEstaClicado = true
+                numeroFoiClicado = false
+                return
+            }
+
+            if (!primeiroSinal && !numeroFoiClicado) {
+                funcao = funcao.slice(0, -1)
+                quantidadeSinal--
+            }
+
+            if (primeiroSinal) {
+                existeSinalAnterior = true
+                primeiroCaracter = false
+                adicionaNoElemento()
+                funcao = `${elemento1 + key}`
+                adicionarPrimeiroElemento = false
+                primeiroSinal = false
+                saidaVazia = true
+                numeroFoiClicado = false
+                resultadoNaTela = false
+            } else {
+                funcao += key
+                existeSinalAnterior = true
+                saidaVazia = true
+                adicionarPrimeiroElemento = false
+                numeroFoiClicado = false
+                resultadoNaTela = false
+            }
+        }
+
+        function adicionaNoElemento() {
+            if (adicionarPrimeiroElemento) {
+                elemento1 = `(${saida.value})`
+                quantidadeDeElementos++
+            } else {
+                elemento2 = `(${saida.value})`
+                quantidadeDeElementos++
+            }
+        }
+
+        function igual() {
+            existeSinalAnterior = false
+            quantidadeSinal = 0
+            adicionaNoElemento()
+            funcao += elemento2
+            funcao = eval(funcao)
+            funcao = `${funcao}`
+            saida.value = funcao
+            elemento1 = `(${funcao})`
+            saidaVazia = true
+            quantidadeDeElementos = 1
+            resultadoNaTela = true
+        }
+    </script>
+</body>
+
+</html>
